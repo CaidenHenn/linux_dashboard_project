@@ -1,0 +1,10 @@
+[Unit]
+Description=Stress-ng Service
+After=network.target
+
+[Service]
+ExecStart=/home/stress.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
