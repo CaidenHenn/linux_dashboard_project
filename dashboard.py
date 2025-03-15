@@ -33,8 +33,9 @@ class ServerDisplay(Thread):
 		self.IO
 		
 class TabClass:
-	def __init__(self,thread):
+	def __init__(self,thread,server_name):
 		self.server_display=thread
+		self.server_name=server_name
 		self.error_placeholder=st.empty()
 		self.cpu_placeholder = st.empty()
 		self.memory_placeholder = st.empty()
@@ -44,7 +45,7 @@ class TabClass:
 		self.memory_data=[]
 		self.disk_data=[]
 		self.timestamps=[]
-	def update_tab(self):
+	def update_tab(self, cpu_threshold, memory_threshold, disk_threshold):
 		if (self.server_display.cpu,self.server_display.memory,self.server_display.disk)==(0,0,0):
 			self.error_placeholder.subheader("No connection")
 			return
@@ -64,6 +65,18 @@ class TabClass:
 		self.cpu_placeholder.metric("CPU Usage", f"{self.server_display.cpu}%")
 		self.memory_placeholder.metric("Memory Usage", f"{self.server_display.memory}%")
 		self.disk_placeholder.metric("Disk Usage", f"{self.server_display.disk}%")
+
+		#check if the threshold is crossed and alerts
+		if(self.server_display.cpu>cpu_threshold):
+			st.sidebar.error(f"[{timestamp}] CPU Usage is high on " + self.server_name) 
+		if(self.server_display.memory>memory_threshold):
+			st.sidebar.error(f"[{timestamp}] Memory Usage is high on " + self.server_name)
+		if(self.server_display.disk>disk_threshold):
+			st.sidebar.error(f"[{timestamp}] Disk Usage is high on " + self.server_name)
+
+		
+			
+
 	
 def main():
 	st.title("Linux Monitoring Dashboard")
@@ -75,6 +88,15 @@ def main():
 	server_display2.start()
 	server_display3=ServerDisplay("ip_here")
 	server_display3.start()
+
+	#initialize the sidebar for alerts threshold slider
+	st.sidebar.header("Set Alerts Threshold")
+	cpu_threshold=st.sidebar.slider("CPU Usage",0,100,90)
+	memory_threshold=st.sidebar.slider("Memory Usage",0,100,90)
+	disk_threshold=st.sidebar.slider("Disk Usage",0,100,90)
+
+	#initialize the sidebar for alerts
+	st.sidebar.header("Alerts")
 	
 
 	cpu_data2=[]
@@ -82,16 +104,16 @@ def main():
 	disk_data2=[]
 	timestamps2=[]
 	with tab1:
-		tab1_update_class=TabClass(server_display1)
+		tab1_update_class=TabClass(server_display1, "Server 1")
 	with tab2:
-		tab2_update_class=TabClass(server_display2)
+		tab2_update_class=TabClass(server_display2, "Server 2")
 	with tab3:
-		tab3_update_class=TabClass(server_display3)
+		tab3_update_class=TabClass(server_display3, "Server 3")
 	
 	while True:
 		#this is the logic loop that calls updates
-		tab1_update_class.update_tab()
-		tab2_update_class.update_tab()
+		tab1_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
+		tab2_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		time.sleep(2)
 
 if __name__ == '__main__':
