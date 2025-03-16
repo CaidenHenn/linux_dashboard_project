@@ -13,7 +13,7 @@ class ServerDisplay(Thread):
 		self.cpu=0
 		self.memory = 0
 		self.disk = 0
-		self.IO =0
+		self.max_process_name = 0
 
 	def run(self):
 		"""Run the thread"""
@@ -30,7 +30,7 @@ class ServerDisplay(Thread):
 		self.cpu = data["CPU"]
 		self.memory = data["Memory"]
 		self.disk = data["HDD (Disk)"]
-		self.IO
+		self.max_process_name = data["Max_Process_Name"]
 		
 class TabClass:
 	def __init__(self,thread,server_name):
@@ -40,10 +40,12 @@ class TabClass:
 		self.cpu_placeholder = st.empty()
 		self.memory_placeholder = st.empty()
 		self.disk_placeholder = st.empty()
+		self.max_process_name_placeholder = st.empty()
 		self.line_chart_placeholder=st.empty()
 		self.cpu_data=[]
 		self.memory_data=[]
 		self.disk_data=[]
+		self.max_process_name_data=[]
 		self.timestamps=[]
 	def update_tab(self, cpu_threshold, memory_threshold, disk_threshold):
 		if (self.server_display.cpu,self.server_display.memory,self.server_display.disk)==(0,0,0):
@@ -53,6 +55,7 @@ class TabClass:
 		self.cpu_data.append(self.server_display.cpu)
 		self.memory_data.append(self.server_display.memory)
 		self.disk_data.append(self.server_display.disk)
+		self.max_process_name_data.append(self.server_display.max_process_name)
 		self.timestamps.append(timestamp)
 		data = {
 			"Timestamp": self.timestamps,
@@ -65,6 +68,7 @@ class TabClass:
 		self.cpu_placeholder.metric("CPU Usage", f"{self.server_display.cpu}%")
 		self.memory_placeholder.metric("Memory Usage", f"{self.server_display.memory}%")
 		self.disk_placeholder.metric("Disk Usage", f"{self.server_display.disk}%")
+		self.max_process_name_placeholder.metric("Max Process Name", f"{self.server_display.max_process_name}%")
 
 		#check if the threshold is crossed and alerts
 		if(self.server_display.cpu>cpu_threshold):
@@ -86,7 +90,7 @@ def main():
 	server_display1.start()
 	server_display2=ServerDisplay("http://34.133.20.113:5000/stats")
 	server_display2.start()
-	server_display3=ServerDisplay("ip_here")
+	server_display3=ServerDisplay("http://34.23.89.37:5000/stats")
 	server_display3.start()
 
 	#initialize the sidebar for alerts threshold slider
@@ -114,6 +118,7 @@ def main():
 		#this is the logic loop that calls updates
 		tab1_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		tab2_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
+		tab3_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		time.sleep(2)
 
 if __name__ == '__main__':
