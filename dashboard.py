@@ -28,24 +28,21 @@ class ServerDisplay(Thread):
 		"""Fetch server stats from API"""
 		try:
 			response = requests.get(self.webpage_link)
-			if response.status_code == 200:
-				data = response.json()  # Attempt to parse JSON
-				self.cpu = data["CPU"]
-				self.memory = data["Memory"]
-				self.disk = data["HDD (Disk)"]
-				self.uptime = data["Uptime(s)"]
-				self.max_process_name = data["Max_Process_Name"]
-				self.max_process_pid = data["Max_Process_PID"]
-				self.max_process_usage = data["Max_Process_Usage"]
-			else:
-				self.cpu = 0
-				self.memory = 0
-				self.disk = 0
-				self.uptime = 0
-				self.max_process_name = 0
-				self.max_process_pid = 0
-				self.max_process_usage = 0
+			data = response.json()  # Attempt to parse JSON
+			self.cpu = data["CPU"]
+			self.memory = data["Memory"]
+			self.disk = data["HDD (Disk)"]
+			self.max_process_name = data["Max_Process_Name"]
+			self.max_process_pid = data["Max_Process_PID"]
+			self.max_process_usage = data["Max_Process_Usage"]
 		except:
+			self.cpu = 0
+			self.memory = 0
+			self.disk = 0
+			self.uptime = 0
+			self.max_process_name = 0
+			self.max_process_pid = 0
+			self.max_process_usage = 0
 			self.fetch_stats()
 
 		
@@ -103,14 +100,17 @@ class TabClass:
 		self.cpu_placeholder.metric("CPU Usage", f"{self.server_display.cpu}%")
 		self.memory_placeholder.metric("Memory Usage", f"{self.server_display.memory}%")
 		self.disk_placeholder.metric("Disk Usage", f"{self.server_display.disk}%")
-		self.uptime_placeholder.metric("Uptime(s)", f"{self.server_display.uptime}")
+
+
+
+
 		self.line_chart_placeholder.line_chart(stats_df,x='Timestamp',y=['CPU (%)',"Memory (%)","Disk (%)"])
 		self.max_process_name_placeholder.metric("Max Process Name", f"{self.server_display.max_process_name}")
 		self.max_process_pid_placeholder.metric("Max Process PID", f"{self.server_display.max_process_pid}")
 		self.max_process_usage_placeholder.metric("Max Process Usage", f"{self.server_display.max_process_usage}%")
 
 		#check if the threshold is crossed and alerts
-		if(self.server_display.cpu>cpu_threshold):
+		if(self.server_display.cpu>cpu_threshold): 
 			st.sidebar.error(f"[{timestamp}] CPU Usage is high on " + self.server_name) 
 		if(self.server_display.memory>memory_threshold):
 			st.sidebar.error(f"[{timestamp}] Memory Usage is high on " + self.server_name)
@@ -149,7 +149,6 @@ def main():
 		tab3_update_class=TabClass(server_display3, "Server 3")
 	
 	while True:
-		#this is the logic loop that calls updates
 		tab1_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		tab2_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		tab3_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
