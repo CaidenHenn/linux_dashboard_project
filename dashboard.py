@@ -43,11 +43,14 @@ class TabClass:
 		self.server_display=thread
 		self.server_name=server_name
 		self.server_not_connected_placeholder=st.empty()
-		
+		self.col1, self.col2, self.col3 = st.columns(3)
 		self.server_connected_placeholder=st.empty()
-		self.cpu_placeholder = st.empty()
-		self.memory_placeholder = st.empty()
-		self.disk_placeholder = st.empty()
+		with self.col1:
+			self.cpu_placeholder = st.empty()
+		with self.col2:
+			self.memory_placeholder = st.empty()
+		with self.col3:
+			self.disk_placeholder = st.empty()
 		self.uptime_placeholder = st.empty()
 		self.line_chart_placeholder= st.empty()
 		self.max_process_placeholder=st.empty()
@@ -66,6 +69,7 @@ class TabClass:
 		if (self.server_display.cpu,self.server_display.memory,self.server_display.disk)==(0,0,0):
 			self.server_not_connected_placeholder.subheader("No connection")
 			return
+		self.server_not_connected_placeholder.subheader("Connected")
 		timestamp = time.strftime('%H:%M:%S')
 		self.cpu_data.append(self.server_display.cpu)
 		self.memory_data.append(self.server_display.memory)
@@ -109,7 +113,7 @@ def main():
 	st.title("Linux Monitoring Dashboard")
 	tab1, tab2, tab3 = st.tabs(["Server1", "Server2", "Server3"])
 	#make threads to fetch api data from different servers
-	server_display1=ServerDisplay("http://35.231.107.155:5000/stats")
+	server_display1=ServerDisplay("http://34.74.232.131:5000/stats")
 	server_display1.start()
 	server_display2=ServerDisplay("http://34.133.20.113:5000/stats")
 	server_display2.start()
@@ -124,12 +128,7 @@ def main():
 
 	#initialize the sidebar for alerts
 	st.sidebar.header("Alerts")
-	
 
-	cpu_data2=[]
-	memory_data2=[]
-	disk_data2=[]
-	timestamps2=[]
 	with tab1:
 		tab1_update_class=TabClass(server_display1, "Server 1")
 	with tab2:
