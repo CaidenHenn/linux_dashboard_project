@@ -1,0 +1,13 @@
+[Unit]
+Description=Flask API
+After=network.target
+
+[Service]
+User=caidenhenn
+ExecStart=/home/caidenhenn/venv/bin/python /home/caidenhenn/api_script.py
+Restart=always
+RestartSec=5s
+
+
+[Install]
+WantedBy=multi-user.target
