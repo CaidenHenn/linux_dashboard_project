@@ -1,21 +1,19 @@
 from flask import Flask, jsonify
 import psutil
-
+import subprocess
+import json
 app = Flask(__name__)
 
 
 def get_max_cpu_usage():
-    max_process_pid= None
-    max_process_name=None
-    max_usage=0
-
-    for proc in psutil.process_iter():
-        cpu_usage = proc.cpu_percent()
-        if cpu_usage > max_usage:
-            max_usage=cpu_usage
-            max_process_pid=proc.pid
-            max_process_name=proc.name()
-    return [max_process_pid,max_usage,max_process_name]
+    with open('/home/caidenhenn/top_process_pipe') as pipe:
+        for line in pipe:
+           parts=json.loads(line)
+           pid=parts['pid']
+           name=parts['name']
+           cpu_usage=parts['cpu'] 
+           print(parts)
+    return [pid,cpu_usage,name]
 
 
 
