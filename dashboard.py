@@ -22,28 +22,39 @@ class ServerDisplay(Thread):
 		"""Run the thread"""
 		while True:
 			self.fetch_stats()
-			time.sleep(2)
+			time.sleep(4)
 
 	def fetch_stats(self):
 		"""Fetch server stats from API"""
-		response = requests.get(self.webpage_link)
-		
-		data = response.json()
-		print(data)
-		self.cpu = data["CPU"]
-		self.memory = data["Memory"]
-		self.disk = data["HDD (Disk)"]
-		self.uptime = data["Uptime(s)"]
-		self.max_process_name = data["Max_Process_Name"]
-		self.max_process_pid = data["Max_Process_PID"]
-		self.max_process_usage = data["Max_Process_Usage"]
+		try:
+			response = requests.get(self.webpage_link)
+			if response.status_code == 200:
+				data = response.json()  # Attempt to parse JSON
+				self.cpu = data["CPU"]
+				self.memory = data["Memory"]
+				self.disk = data["HDD (Disk)"]
+				self.uptime = data["Uptime(s)"]
+				self.max_process_name = data["Max_Process_Name"]
+				self.max_process_pid = data["Max_Process_PID"]
+				self.max_process_usage = data["Max_Process_Usage"]
+			else:
+				self.cpu = 0
+				self.memory = 0
+				self.disk = 0
+				self.uptime = 0
+				self.max_process_name = 0
+				self.max_process_pid = 0
+				self.max_process_usage = 0
+		except:
+			self.fetch_stats()
+
 		
 class TabClass:
 	def __init__(self,thread,server_name):
 		self.server_display=thread
 		self.server_name=server_name
 		self.server_not_connected_placeholder=st.empty()
-		self.col1, self.col2, self.col3 = st.columns(3)
+		self.col1, self.col2, self.col3,self.col4= st.columns(4)
 		self.server_connected_placeholder=st.empty()
 		with self.col1:
 			self.cpu_placeholder = st.empty()
@@ -51,7 +62,8 @@ class TabClass:
 			self.memory_placeholder = st.empty()
 		with self.col3:
 			self.disk_placeholder = st.empty()
-		self.uptime_placeholder = st.empty()
+		with self.col4:
+			self.uptime_placeholder = st.empty()
 		self.line_chart_placeholder= st.empty()
 		self.max_process_placeholder=st.empty()
 		self.max_process_name_placeholder = st.empty()
