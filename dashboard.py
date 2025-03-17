@@ -7,8 +7,10 @@ import pandas as pd
 
 
 class ServerDisplay(Thread):
+	#this inherits the thread class to have thread methods
 	def __init__(self,webpage_link):
 		super().__init__()
+		#these are the instance variables
 		self.webpage_link=webpage_link
 		self.cpu=0
 		self.memory = 0
@@ -17,8 +19,9 @@ class ServerDisplay(Thread):
 		self.max_process_name = 0
 		self.max_process_pid = 0
 		self.max_process_usage = 0
-
+	#the main thread run loop
 	def run(self):
+
 		"""Run the thread"""
 		while True:
 			self.fetch_stats()
@@ -27,6 +30,7 @@ class ServerDisplay(Thread):
 	def fetch_stats(self):
 		"""Fetch server stats from API"""
 		try:
+			#try to get data
 			response = requests.get(self.webpage_link)
 			data = response.json()  # Attempt to parse JSON
 			self.cpu = data["CPU"]
@@ -36,6 +40,7 @@ class ServerDisplay(Thread):
 			self.max_process_pid = data["Max_Process_PID"]
 			self.max_process_usage = data["Max_Process_Usage"]
 		except:
+			#data get fail, we can now show we disconnect
 			self.cpu = 0
 			self.memory = 0
 			self.disk = 0
@@ -43,6 +48,7 @@ class ServerDisplay(Thread):
 			self.max_process_name = 0
 			self.max_process_pid = 0
 			self.max_process_usage = 0
+			time.sleep(1)
 			self.fetch_stats()
 
 		
@@ -53,6 +59,7 @@ class TabClass:
 		self.server_not_connected_placeholder=st.empty()
 		self.col1, self.col2, self.col3,self.col4= st.columns(4)
 		self.server_connected_placeholder=st.empty()
+		#put these placeholder variables into columns so we can have them horizontal
 		with self.col1:
 			self.cpu_placeholder = st.empty()
 		with self.col2:
@@ -61,6 +68,7 @@ class TabClass:
 			self.disk_placeholder = st.empty()
 		with self.col4:
 			self.uptime_placeholder = st.empty()
+		#initialize placeholders
 		self.line_chart_placeholder= st.empty()
 		self.max_process_placeholder=st.empty()
 		self.max_process_name_placeholder = st.empty()
@@ -76,8 +84,10 @@ class TabClass:
 		self.timestamps=[]
 	def update_tab(self, cpu_threshold, memory_threshold, disk_threshold):
 		if (self.server_display.cpu,self.server_display.memory,self.server_display.disk)==(0,0,0):
+			#show no connection if everything is 0
 			self.server_not_connected_placeholder.subheader("No connection")
 			return
+		#else populate all the data with the server_display instances
 		self.server_not_connected_placeholder.subheader("Connected")
 		timestamp = time.strftime('%H:%M:%S')
 		self.cpu_data.append(self.server_display.cpu)
@@ -89,6 +99,7 @@ class TabClass:
 		self.max_process_pid_data.append(self.server_display.max_process_pid)
 		self.max_process_usage_data.append(self.server_display.max_process_usage)
 		self.timestamps.append(timestamp)
+		#formating data for the linechart
 		data = {
 			"Timestamp": self.timestamps,
 			"CPU (%)": self.cpu_data,
@@ -141,6 +152,7 @@ def main():
 	#initialize the sidebar for alerts
 	st.sidebar.header("Alerts")
 
+	#these are the tabs
 	with tab1:
 		tab1_update_class=TabClass(server_display1, "Server 1")
 	with tab2:
@@ -149,6 +161,7 @@ def main():
 		tab3_update_class=TabClass(server_display3, "Server 3")
 	
 	while True:
+		#this is the main loop that runs the logic to update tabs 
 		tab1_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		tab2_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
 		tab3_update_class.update_tab(cpu_threshold, memory_threshold, disk_threshold)
